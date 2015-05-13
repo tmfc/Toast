@@ -122,7 +122,18 @@ NSString * const CSToastPositionBottom          = @"bottom";
         toast.exclusiveTouch = YES;
     }
     
-    [self addSubview:toast];
+    UIWindow *toastDisplaywindow = [[[UIApplication sharedApplication] delegate] window];;
+    for (UIWindow *testWindow in [[UIApplication sharedApplication] windows])
+    {
+        if (![[testWindow class] isEqual:[UIWindow class]])
+        {
+            toastDisplaywindow = testWindow;
+            break;
+        }
+    }
+    [toastDisplaywindow addSubview:toast];
+
+//    [self addSubview:toast];
     
     [UIView animateWithDuration:CSToastFadeDuration
                           delay:0.0
