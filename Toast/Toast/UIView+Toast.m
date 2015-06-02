@@ -18,19 +18,20 @@
 // general appearance
 static const CGFloat CSToastMaxWidth            = 0.8;      // 80% of parent view width
 static const CGFloat CSToastMaxHeight           = 0.8;      // 80% of parent view height
-static const CGFloat CSToastHorizontalPadding   = 20.0;
-static const CGFloat CSToastVerticalPadding     = 10.0;
-static const CGFloat CSToastCornerRadius        = 10.0;
+static const CGFloat CSToastHorizontalPadding   = 10.0;
+static const CGFloat CSToastVerticalPadding     = 5.0;
+static const CGFloat CSToastCornerRadius        = 5.0;
 static const CGFloat CSToastOpacity             = 0.9;
 static const CGFloat CSToastFontSize            = 12.0;
 static const CGFloat CSToastMaxTitleLines       = 0;
 static const CGFloat CSToastMaxMessageLines     = 0;
 static const NSTimeInterval CSToastFadeDuration = 0.2;
+static const float alpha = 0.7;
 
 // shadow appearance
-static const CGFloat CSToastShadowOpacity       = 0.5;
-static const CGFloat CSToastShadowRadius        = 6.0;
-static const CGSize  CSToastShadowOffset        = { 4.0, 4.0 };
+static const CGFloat CSToastShadowOpacity       = 0.2;
+static const CGFloat CSToastShadowRadius        = 5.0;
+static const CGSize  CSToastShadowOffset        = { 1.0, 5.0 };
 static const BOOL    CSToastDisplayShadow       = YES;
 
 // display duration
@@ -75,7 +76,7 @@ NSString * const CSToastPositionBottom          = @"bottom";
 #pragma mark - Toast Methods
 
 - (void)makeToast:(NSString *)message {
-    [self makeToast:message duration:CSToastDefaultDuration position:nil];
+    [self makeToast:message duration:CSToastDefaultDuration position:CSToastPositionCenter];
 }
 
 - (void)makeToast:(NSString *)message duration:(NSTimeInterval)duration position:(id)position {
@@ -128,7 +129,7 @@ NSString * const CSToastPositionBottom          = @"bottom";
                           delay:0.0
                         options:(UIViewAnimationOptionCurveEaseOut | UIViewAnimationOptionAllowUserInteraction)
                      animations:^{
-                         toast.alpha = 0.9;
+                         toast.alpha = alpha;
                      } completion:^(BOOL finished) {
                          NSTimer *timer = [NSTimer scheduledTimerWithTimeInterval:duration target:self selector:@selector(toastTimerDidFinish:) userInfo:toast repeats:NO];
                          // associate the timer with the toast view
