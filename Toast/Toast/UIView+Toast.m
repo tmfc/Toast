@@ -84,6 +84,9 @@ static const NSInteger TOAST_TAG = 9999;
 #pragma mark - Toast Methods
 
 - (void)makeToast:(NSString *)message {
+    if (!message || [message isKindOfClass:[NSNull class]]) {
+        return;
+    }
     [self makeToast:message duration:CSToastDefaultDuration position:CSToastPositionCenter];
 }
 
@@ -114,7 +117,7 @@ static const NSInteger TOAST_TAG = 9999;
 
 - (void)showToast:(UIView *)toast duration:(NSTimeInterval)duration position:(id)position {
     [self showToast:toast duration:duration position:position tapCallback:nil];
-    
+
 }
 
 
@@ -122,21 +125,21 @@ static const NSInteger TOAST_TAG = 9999;
       tapCallback:(void (^)(void))tapCallback {
     toast.center = [self centerPointForPosition:position withToast:toast];
     toast.alpha = 0.0;
-    
+
     if (CSToastHidesOnTap) {
         UITapGestureRecognizer *recognizer = [[UITapGestureRecognizer alloc] initWithTarget:toast action:@selector(handleToastTapped:)];
         [toast addGestureRecognizer:recognizer];
         toast.userInteractionEnabled = YES;
         toast.exclusiveTouch = YES;
     }
-    
-    
+
+
     UIView *last = [self viewWithTag:TOAST_TAG];
     if (last != nil) {
         [last removeFromSuperview];
     }
     toast.alpha = alpha;
-    
+
     [self addSubview:toast];
     [UIView animateWithDuration:CSToastFadeDuration
                           delay:0.0
@@ -144,11 +147,11 @@ static const NSInteger TOAST_TAG = 9999;
                      animations:^{
                          //                         toast.alpha = alpha;
                      } completion:^(BOOL finished) {
-                         NSTimer *timer = [NSTimer scheduledTimerWithTimeInterval:duration target:self selector:@selector(toastTimerDidFinish:) userInfo:toast repeats:NO];
-                         // associate the timer with the toast view
-                         objc_setAssociatedObject(toast, &CSToastTimerKey, timer, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                         objc_setAssociatedObject(toast, &CSToastTapCallbackKey, tapCallback, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                     }];
+                NSTimer *timer = [NSTimer scheduledTimerWithTimeInterval:duration target:self selector:@selector(toastTimerDidFinish:) userInfo:toast repeats:NO];
+                // associate the timer with the toast view
+                objc_setAssociatedObject(toast, &CSToastTimerKey, timer, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                objc_setAssociatedObject(toast, &CSToastTapCallbackKey, tapCallback, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+            }];
 }
 
 
@@ -159,8 +162,8 @@ static const NSInteger TOAST_TAG = 9999;
                      animations:^{
                          toast.alpha = 0.0;
                      } completion:^(BOOL finished) {
-                         [toast removeFromSuperview];
-                     }];
+                [toast removeFromSuperview];
+            }];
 }
 
 #pragma mark - Events
@@ -172,7 +175,7 @@ static const NSInteger TOAST_TAG = 9999;
 - (void)handleToastTapped:(UITapGestureRecognizer *)recognizer {
     NSTimer *timer = (NSTimer *) objc_getAssociatedObject(self, &CSToastTimerKey);
     [timer invalidate];
-    
+
     void (^callback)(void) = objc_getAssociatedObject(self, &CSToastTapCallbackKey);
     if (callback) {
         callback();
@@ -190,31 +193,31 @@ static const NSInteger TOAST_TAG = 9999;
     // sanity
     UIView *existingActivityView = (UIView *) objc_getAssociatedObject(self, &CSToastActivityViewKey);
     if (existingActivityView != nil) return;
-    
+
     UIView *activityView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, CSToastActivityWidth, CSToastActivityHeight)];
     activityView.center = [self centerPointForPosition:position withToast:activityView];
     activityView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:CSToastOpacity];
     activityView.alpha = 0.0;
     activityView.autoresizingMask = (UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleBottomMargin);
     activityView.layer.cornerRadius = CSToastCornerRadius;
-    
+
     if (CSToastDisplayShadow) {
         activityView.layer.shadowColor = [UIColor blackColor].CGColor;
         activityView.layer.shadowOpacity = CSToastShadowOpacity;
         activityView.layer.shadowRadius = CSToastShadowRadius;
         activityView.layer.shadowOffset = CSToastShadowOffset;
     }
-    
+
     UIActivityIndicatorView *activityIndicatorView = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
     activityIndicatorView.center = CGPointMake(activityView.bounds.size.width / 2, activityView.bounds.size.height / 2);
     [activityView addSubview:activityIndicatorView];
     [activityIndicatorView startAnimating];
-    
+
     // associate the activity view with self
     objc_setAssociatedObject(self, &CSToastActivityViewKey, activityView, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-    
+
     [self addSubview:activityView];
-    
+
     [UIView animateWithDuration:CSToastFadeDuration
                           delay:0.0
                         options:UIViewAnimationOptionCurveEaseOut
@@ -232,9 +235,9 @@ static const NSInteger TOAST_TAG = 9999;
                          animations:^{
                              existingActivityView.alpha = 0.0;
                          } completion:^(BOOL finished) {
-                             [existingActivityView removeFromSuperview];
-                             objc_setAssociatedObject(self, &CSToastActivityViewKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-                         }];
+                    [existingActivityView removeFromSuperview];
+                    objc_setAssociatedObject(self, &CSToastActivityViewKey, nil, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+                }];
     }
 }
 
@@ -250,7 +253,7 @@ static const NSInteger TOAST_TAG = 9999;
     } else if ([point isKindOfClass:[NSValue class]]) {
         return [point CGPointValue];
     }
-    
+
     // default to bottom
     return CGPointMake(self.bounds.size.width / 2, (self.bounds.size.height - (toast.frame.size.height / 2)) - CSToastVerticalPadding);
 }
@@ -259,11 +262,11 @@ static const NSInteger TOAST_TAG = 9999;
     if ([string respondsToSelector:@selector(boundingRectWithSize:options:attributes:context:)]) {
         NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
         paragraphStyle.lineBreakMode = lineBreakMode;
-        NSDictionary *attributes = @{NSFontAttributeName : font, NSParagraphStyleAttributeName : paragraphStyle};
+        NSDictionary *attributes = @{NSFontAttributeName: font, NSParagraphStyleAttributeName: paragraphStyle};
         CGRect boundingRect = [string boundingRectWithSize:constrainedSize options:NSStringDrawingUsesLineFragmentOrigin attributes:attributes context:nil];
         return CGSizeMake(ceilf(boundingRect.size.width), ceilf(boundingRect.size.height));
     }
-    
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
     return [string sizeWithFont:font constrainedToSize:constrainedSize lineBreakMode:lineBreakMode];
@@ -273,12 +276,12 @@ static const NSInteger TOAST_TAG = 9999;
 - (UIView *)viewForMessage:(NSString *)message title:(NSString *)title image:(UIImage *)image {
     // sanity
     if ((message == nil) && (title == nil) && (image == nil)) return nil;
-    
+
     // dynamically build a toast view with any combination of message, title, & image.
     UILabel *messageLabel = nil;
     UILabel *titleLabel = nil;
     UIImageView *imageView = nil;
-    
+
     // create the parent view
     UIView *wrapperView = [[UIView alloc] init];
     wrapperView.autoresizingMask = (UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleBottomMargin);
@@ -290,17 +293,17 @@ static const NSInteger TOAST_TAG = 9999;
         wrapperView.layer.shadowRadius = CSToastShadowRadius;
         wrapperView.layer.shadowOffset = CSToastShadowOffset;
     }
-    
+
     wrapperView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:CSToastOpacity];
-    
+
     if (image != nil) {
         imageView = [[UIImageView alloc] initWithImage:image];
         imageView.contentMode = UIViewContentModeScaleAspectFit;
         imageView.frame = CGRectMake(CSToastHorizontalPadding, CSToastVerticalPadding, CSToastImageViewWidth, CSToastImageViewHeight);
     }
-    
+
     CGFloat imageWidth, imageHeight, imageLeft;
-    
+
     // the imageView frame values will be used to size & position the other views
     if (imageView != nil) {
         imageWidth = imageView.bounds.size.width;
@@ -309,7 +312,7 @@ static const NSInteger TOAST_TAG = 9999;
     } else {
         imageWidth = imageHeight = imageLeft = 0.0;
     }
-    
+
     if (title != nil) {
         titleLabel = [[UILabel alloc] init];
         titleLabel.numberOfLines = CSToastMaxTitleLines;
@@ -320,13 +323,13 @@ static const NSInteger TOAST_TAG = 9999;
         titleLabel.backgroundColor = [UIColor clearColor];
         titleLabel.alpha = 1.0;
         titleLabel.text = title;
-        
+
         // size the title label according to the length of the text
         CGSize maxSizeTitle = CGSizeMake((self.bounds.size.width * CSToastMaxWidth) - imageWidth, self.bounds.size.height * CSToastMaxHeight);
         CGSize expectedSizeTitle = [self sizeForString:title font:titleLabel.font constrainedToSize:maxSizeTitle lineBreakMode:titleLabel.lineBreakMode];
         titleLabel.frame = CGRectMake(0.0, 0.0, expectedSizeTitle.width, expectedSizeTitle.height);
     }
-    
+
     if (message != nil) {
         messageLabel = [[UILabel alloc] init];
         messageLabel.numberOfLines = CSToastMaxMessageLines;
@@ -336,16 +339,16 @@ static const NSInteger TOAST_TAG = 9999;
         messageLabel.backgroundColor = [UIColor clearColor];
         messageLabel.alpha = 1.0;
         messageLabel.text = message;
-        
+
         // size the message label according to the length of the text
         CGSize maxSizeMessage = CGSizeMake((self.bounds.size.width * CSToastMaxWidth) - imageWidth, self.bounds.size.height * CSToastMaxHeight);
         CGSize expectedSizeMessage = [self sizeForString:message font:messageLabel.font constrainedToSize:maxSizeMessage lineBreakMode:messageLabel.lineBreakMode];
         messageLabel.frame = CGRectMake(0.0, 0.0, expectedSizeMessage.width, expectedSizeMessage.height);
     }
-    
+
     // titleLabel frame values
     CGFloat titleWidth, titleHeight, titleTop, titleLeft;
-    
+
     if (titleLabel != nil) {
         titleWidth = titleLabel.bounds.size.width;
         titleHeight = titleLabel.bounds.size.height;
@@ -354,10 +357,10 @@ static const NSInteger TOAST_TAG = 9999;
     } else {
         titleWidth = titleHeight = titleTop = titleLeft = 0.0;
     }
-    
+
     // messageLabel frame values
     CGFloat messageWidth, messageHeight, messageLeft, messageTop;
-    
+
     if (messageLabel != nil) {
         messageWidth = messageLabel.bounds.size.width;
         messageHeight = messageLabel.bounds.size.height;
@@ -366,30 +369,30 @@ static const NSInteger TOAST_TAG = 9999;
     } else {
         messageWidth = messageHeight = messageLeft = messageTop = 0.0;
     }
-    
+
     CGFloat longerWidth = MAX(titleWidth, messageWidth);
     CGFloat longerLeft = MAX(titleLeft, messageLeft);
-    
+
     // wrapper width uses the longerWidth or the image width, whatever is larger. same logic applies to the wrapper height
     CGFloat wrapperWidth = MAX((imageWidth + (CSToastHorizontalPadding * 2)), (longerLeft + longerWidth + CSToastHorizontalPadding));
     CGFloat wrapperHeight = MAX((messageTop + messageHeight + CSToastVerticalPadding), (imageHeight + (CSToastVerticalPadding * 2)));
-    
+
     wrapperView.frame = CGRectMake(0.0, 0.0, wrapperWidth, wrapperHeight);
-    
+
     if (titleLabel != nil) {
         titleLabel.frame = CGRectMake(titleLeft, titleTop, titleWidth, titleHeight);
         [wrapperView addSubview:titleLabel];
     }
-    
+
     if (messageLabel != nil) {
         messageLabel.frame = CGRectMake(messageLeft, messageTop, messageWidth, messageHeight);
         [wrapperView addSubview:messageLabel];
     }
-    
+
     if (imageView != nil) {
         [wrapperView addSubview:imageView];
     }
-    
+
     return wrapperView;
 }
 
